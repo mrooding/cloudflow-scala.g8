@@ -2,7 +2,15 @@ import sbt._
 import sbt.Keys._
 
 lazy val `$name;format="norm"$` =  (project in file("."))
+  $if(enableAkkaStreamsPlugin.truthy)$
   .enablePlugins(CloudflowAkkaStreamsApplicationPlugin)
+  $endif$
+  $if(enableFlinkPlugin.truthy)$
+  .enablePlugins(CloudflowFlinkApplicationPlugin)
+  $endif$
+  $if(enableSparkPlugin.truthy)$
+  .enablePlugins(CloudflowSparkApplicationPlugin)
+  $endif$
   .settings(
     libraryDependencies ++= Seq(
       "com.lightbend.akka"     %% "akka-stream-alpakka-file"  % "1.1.2",
@@ -13,7 +21,21 @@ lazy val `$name;format="norm"$` =  (project in file("."))
     name := "$name$",
     organization := "$organization$",
     version := "$version$",
+    
+    crossScalaVersions := Vector(scalaVersion.value),
+    scalacOptions ++= Seq(
+      "-encoding", "UTF-8",
+      "-target:jvm-1.8",
+      "-Xlog-reflective-calls",
+      "-Xlint",
+      "-Ywarn-unused",
+      "-Ywarn-unused-import",
+      "-deprecation",
+      "-feature",
+      "-language:_",
+      "-unchecked"
+    ),
 
-    scalaVersion := "2.12.10",
-    crossScalaVersions := Vector(scalaVersion.value)
+    scalacOptions in (Compile, console) --= Seq("-Ywarn-unused", "-Ywarn-unused-import"),
+    scalacOptions in (Test, console) := (scalacOptions in (Compile, console)).value,
   )
